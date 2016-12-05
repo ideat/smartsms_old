@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.mindware.mappers.MensajeMapper">
+
+    <resultMap type="mensaje" id="MensajeResult">
+        <id 	property="mensajeId" column="mensaje_id"/>
+        <result property="fechaEnvio" column="fecha_envio"/>
+        <result property="horaEnvio" column="hora_envio"/>
+        <result property="enviado" column="enviado"/>
+        <result property="celular" column="celular"/>
+        <result property="nombre" column="nombre"/>
+        <result property="grupo" column="grupo"/>
+        <result property="contactoId" column="contacto_id"/>
+        <result property="longitudSms" column="longitud_sms"/>
+        <result property="grupoId" column="grupo_id" />
+        <result property="mensaje" column="mensaje" />
+        <result property="numeroIntentos" column="numero_intentos" />
+        <result property="status" column="status"/>
+        <result property="statusDetalle" column="status_detalle"/>
+    </resultMap>
+
+    <select id="findMensajesUsuario" resultMap="MensajeResult" parameterType="map">
+        SELECT m.mensaje_id, m.fecha_envio, m.hora_envio, m.enviado, m.celular, m.nombre
+         , m.grupo, m.contacto_id, m.longitud_sms, m.grupo_id, m.mensaje, m.numero_intentos
+         , m.status, m.status_detalle
+        from mensaje m
+        where m.usuario_id= #{usuarioId}
+         and m.enviado = #{estado}
+    </select>
+
+	 <select id="findMensajeNoEnviado" resultMap="MensajeResult" parameterType="String">
+        SELECT m.mensaje_id, m.fecha_envio, m.hora_envio, m.enviado, m.celular, m.nombre
+         , m.grupo, m.contacto_id, m.longitud_sms, m.grupo_id, m.mensaje, m.numero_intentos
+         , m.status, m.status_detalle
+        from mensaje m
+        where  m.enviado = #{estado}
+    </select>
+    
+    <select id="findMensajeNoEntregados" resultMap="MensajeResult" parameterType="String">
+        SELECT m.mensaje_id, m.fecha_envio, m.hora_envio, m.enviado, m.celular, m.nombre
+         , m.grupo, m.contacto_id, m.longitud_sms, m.grupo_id, m.mensaje, m.numero_intentos
+         , m.status, m.status_detalle
+        from mensaje m
+        where  (m.status  = #{status}
+        or m.status is null) 
+        and m.numero_intentos &lt; 3
+    </select>
+	
+
+    <insert id="insertarMensaje" parameterType="mensaje" keyProperty="mensajeId" >
+        <selectKey keyProperty="mensajeId" resultType="int" order="BEFORE">
+            select nextval('mensaje_id_seq')
+        </selectKey>
+
+        insert into mensaje (mensaje_id, usuario_id, contacto_id,grupo_id,mensaje, fecha_envio,
+        hora_envio, enviado, celular, nombre, grupo, longitud_sms, numero_intentos,
+        status, status_detalle) VALUES
+        (#{mensajeId}, #{usuarioId}, #{contactoId}, #{grupoId}, #{mensaje}, #{fechaEnvio},
+        #{horaEnvio},#{enviado},#{celular}, #{nombre}, #{grupo}, #{longitudSms}, #{numeroIntentos},
+        #{status}, #{statusDetalle})
+    </insert>
+
+    <update id="updateMensaje" parameterType="mensaje" >
+        update mensaje
+        set
+          enviado = #{enviado},
+          fecha_envio = #{fechaEnvio},
+          hora_envio = #{horaEnvio},
+          numero_intentos = #{numeroIntentos},
+          status = #{status},
+          status_detalle=#{statusDetalle} 
+        WHERE
+          mensaje_id = #{mensajeId}
+    </update>
+
+
+</mapper>

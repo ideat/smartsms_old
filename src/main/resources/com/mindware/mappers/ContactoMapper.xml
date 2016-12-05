@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.mindware.mappers.ContactoMapper">
+
+    <resultMap type="contacto" id="ContactoResult">
+        <id 	property="contactoId" column="contacto_id"/>
+        <result property="nombreContacto" column="nombre_contacto"/>
+        <result property="celular" column="celular"/>
+        <result property="estado" column="estado"/>
+        <result property="fechaImportacion" column="fecha_importacion"/>
+        <result property="estado" column="estado"/>
+        <result property="campo1" column="campo1"/>
+        <result property="campo2" column="campo2"/>
+        <result property="campo3" column="campo3"/>
+        <result property="usuarioId" column="usuario_id"/>
+    </resultMap>
+
+
+
+    <select id="findAllContactos" resultMap="ContactoResult">
+        select * from contacto
+    </select>
+
+    <select id="findContactoByID" resultMap="ContactoResult" parameterType="int">
+        select * from contacto
+        where contacto_id = #{contactoId}
+
+    </select>
+
+    <select id="findContactoByUser" resultMap="ContactoResult" parameterType="int">
+        select contacto_id,celular, nombre_contacto, campo1, campo2, campo3
+        from contacto
+        where usuario_id = #{usuarioId}
+        and estado = 'ACTIVO'
+        order by nombre_contacto
+    </select>
+
+    <select id="findAsignedContactoByGroup" resultMap="ContactoResult" parameterType="int">
+        select c.contacto_id, c.celular, c.nombre_contacto, c.campo1, c.campo2, c.campo3, c.fecha_importacion
+        from contacto c
+        inner join contacto_grupo cg on (cg.contacto_id = c.contacto_id)
+        where cg.grupo_id = #{grupoId}
+        order by nombre_contacto
+    </select>
+
+    <select id="findAvailableContactoByGroup" resultMap="ContactoResult" parameterType="map">
+        select c.contacto_id, c.celular, c.nombre_contacto, c.campo1,
+        c.campo2, c.campo3, cg.grupo_id
+        from contacto c
+        left join contacto_grupo cg on (cg.contacto_id = c.contacto_id and cg.grupo_id = #{grupoId})
+        where cg.contacto_id is null
+        AND c.fecha_importacion = #{fechaImportacion}
+        AND c.estado = 'ACTIVO'
+
+        order by nombre_contacto
+    </select>
+
+    <select id="findAvailableContactoActivo" resultMap="ContactoResult" >
+        select c.contacto_id, c.celular, c.nombre_contacto, c.campo1, c.campo2, c.campo3
+        from contacto c
+        where c.estado = 'ACTIVO'
+        order by nombre_contacto
+    </select>
+
+    <select id="contactSelected" resultMap="ContactoResult"  parameterType="map">
+        select contacto_id, celular, nombre_contacto, campo1, campo2, campo3
+        from contacto
+        where usuario_id = #{usuarioId}
+        and estado = 'ACTIVO'
+        and celular in  <!--('60700381','8902343')-->
+        <foreach item="item"  index="index" collection="list" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+
+    </select>
+
+    <select id="contactByGroup" resultMap="ContactoResult"  parameterType="int">
+        select c.contacto_id, c.celular, c.nombre_contacto, c.campo1, c.campo2, c.campo3
+        from contacto c
+        inner join contacto_grupo cg on (cg.contacto_id = c.contacto_id)
+        where cg.grupo_id = #{grupoId}
+        and c.estado = 'ACTIVO'
+
+    </select>
+
+    <select id="verificarAsignacionContactoGrupo" resultType="int" parameterType="int">
+        select count(*) as conteo
+        from contacto c
+        inner join contacto_grupo cg on (c.contacto_id = cg.contacto_id)
+        where cg.contacto_id = #{contactoId}
+    </select>
+
+    <select id="verificarContactoMensaje" resultType="int" parameterType="int">
+        select count(*) as conteo
+        from contacto c
+        inner join mensaje m on (c.contacto_id = m.contacto_id)
+        where m.contacto_id = #{contactoId}
+    </select>
+
+
+    <insert id="insertContacto"  parameterType="contacto" keyProperty="contactoId" >
+        <selectKey keyProperty="contactoId" resultType="int" order="BEFORE">
+            select nextval('contacto_id_seq')
+        </selectKey>
+        insert into contacto (
+        contacto_id,
+        nombre_contacto,
+        fecha_importacion,
+        celular,
+        campo1,
+        campo2,
+        campo3,
+        estado,
+        usuario_id)
+        values (
+        #{contactoId},
+        #{nombreContacto},
+        #{fechaImportacion},
+        #{celular},
+        #{campo1},
+        #{campo2},
+        #{campo3},
+        #{estado},
+        #{usuarioId})
+    </insert>
+
+    <delete id="deleteContacto" parameterType="int">
+        delete from contacto
+        where contacto_id = #{contactoId}
+    </delete>
+
+    <update id="updateContacto" parameterType="contacto">
+        update contacto
+        set
+        nombre_contacto = #{nombreContacto},
+        celular = #{celular},
+        campo1 = #{campo1},
+        campo2 = #{campo2},
+        campo3 = #{campo3}
+        where contacto_id = #{contactoId}
+
+    </update>
+    
+    <update id="bajaContactos" parameterType="int">
+    	update contacto
+    	set estado = 'BAJA'
+    	where usuario_id = #{usuarioId}
+    </update>
+
+
+</mapper>

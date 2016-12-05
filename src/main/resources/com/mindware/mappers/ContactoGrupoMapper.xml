@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.mindware.mappers.ContactoGrupoMapper">
+
+
+
+    <insert id="insertContactoGrupo" parameterType="map" keyProperty="contactoGrupoId">
+        <selectKey keyProperty="contactoGrupoId" resultType="int" order="BEFORE">
+            select nextval('contacto_grupo_id_seq')
+        </selectKey>
+        INSERT INTO contacto_grupo (contacto_grupo_id,contacto_id, grupo_id)
+        VALUES (#{contactoGrupoId}, #{contactoId}, #{grupoId});
+    </insert>
+
+    <delete id="deleteContactoGrupo" parameterType="map">
+        DELETE FROM contacto_grupo
+        WHERE contacto_id=#{contactoId}
+        AND grupo_id=#{grupoId}
+    </delete>
+
+    <delete id="deleteContactosGrupo" parameterType="int" >
+        DELETE FROM contacto_grupo
+        WHERE  grupo_id=#{grupoId}
+    </delete>
+
+
+
+</mapper>

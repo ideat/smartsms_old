@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.mindware.mappers.GrupoMapper">
+
+    <resultMap type="grupo" id="GrupoResult">
+        <id 	property="grupoId" column="grupo_id"/>
+        <result property="nombreGrupo" column="nombre_grupo"/>
+        <result property="estado" column="estado"/>
+        <result property="fechaCreacion" column="fecha_creacion"/>
+        <result property="usuarioId" column="usuario_id"/>
+        <result property="numeroMiembros" column="numero_miembros"/>
+        <collection property="contactos" column="contacto_id" ofType="Contacto" javaType="ArrayList" select="getContactosGrupo"/>
+    </resultMap>
+
+    <resultMap id="ContactoMap" type="contacto">
+        <id property="contactoId" column="contacto_id" />
+        <result property="nombreContacto" column="nombre_contacto" />
+        <result property="celular" column="celular" />
+        <result property="campo1" column="campo1" />
+        <result property="campo2" column="campo2" />
+        <result property="campo3" column="campo3" />
+    </resultMap>
+
+    <select id="getGruposUsuario" parameterType="int" resultMap="GrupoResult" >
+        select * from grupo
+        where usuario_id = #{usuarioId}
+        order by fecha_creacion
+    </select>
+    <select id="getGrupoMiembros" parameterType="int" resultMap="GrupoResult">
+        select g.grupo_id, g.nombre_grupo, g.numero_miembros
+        from grupo g
+        where g.usuario_id = #{usuarioId}
+        and g.estado = 'V'
+        order by g.grupo_id
+    </select>
+
+    <select id="getContactosGrupo" parameterType="int" resultMap="ContactoMap" >
+        SELECT cg.contacto_grupo_id, cg.contacto_id, g.nombre_grupo, g.numero_miembros,
+        c.nombre_contacto, c.celular,
+        c.campo1, c.campo2, c.campo3
+        from grupo g
+        left outer join contacto_grupo cg on (cg.grupo_id = g.grupo_id)
+        left outer join contacto c on (c.contacto_id = cg.contacto_id)
+        where g.grupo_id = #{grupoId}
+        and c.estado = 'ACTIVO'
+    </select>
+
+
+    <insert id="insertGrupo"  parameterType="grupo" keyProperty="grupoId" >
+        <selectKey keyProperty="grupoId" resultType="int" order="BEFORE">
+            select nextval('grupo_id_seq')
+        </selectKey>
+        insert into grupo (grupo_id,nombre_grupo, estado, usuario_id, numero_miembros, fecha_creacion)
+        values ( #{grupoId},#{nombreGrupo}, #{estado}, #{usuarioId}, #{numeroMiembros}, #{fechaCreacion})
+    </insert>
+
+    <update id="updateGrupo" parameterType="grupo" >
+        update grupo
+        set nombre_grupo = #{nombreGrupo}
+        , estado = #{estado}
+        , numero_miembros = #{numeroMiembros}
+        where grupo_id = #{grupoId}
+
+    </update>
+    <update id="bajaGrupo" parameterType="int">
+    	update grupo
+    	set estado = 'B'
+    	where usuario_id = #{usuarioId}
+    </update>
+
+    <delete id="deleteGrupo" parameterType="int">
+        delete from grupo
+        where grupo_id = #{grupoId}
+    </delete>
+</mapper>

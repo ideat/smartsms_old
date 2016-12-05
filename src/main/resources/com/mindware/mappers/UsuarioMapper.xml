@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.mindware.mappers.UsuarioMapper">
+
+    <resultMap type="usuario" id="UsuarioResult">
+        <id 	property="usuarioId" column="usuario_id"/>
+        <result property="nombre" column="nombre"/>
+        <result property="login" column="login"/>
+        <result property="password" column="password"/>
+        <result property="rol" column="rol"/>
+        <result property="estado" column="estado"/>
+        
+    </resultMap>
+
+	<select id="buscaLogin" parameterType="String" resultMap="UsuarioResult">
+		select nombre, login, password, estado, usuario_id
+		from usuario
+		where login = #{login}
+	</select>
+	
+
+    <select id="listaUsuarios" parameterType="String" resultMap="UsuarioResult" >
+        select usuario_id, nombre, login, password,
+        rol, estado 
+        from usuario
+        where estado like #{estado}
+    </select>
+    
+
+    <insert id="insertUsuario"  parameterType="usuario" keyProperty="usuarioId" >
+        <selectKey keyProperty="usuarioId" resultType="int" order="BEFORE">
+            select nextval('usuario_id_seq')
+        </selectKey>
+        insert into usuario (usuario_id,nombre, estado,  login, password, rol)
+        values ( #{usuarioId},#{nombre}, #{estado}, #{login},  #{password}, #{rol})
+    </insert>
+
+    <update id="updateUsuario" parameterType="usuario" >
+        update usuario
+        set nombre = #{nombre}
+        , estado = #{estado}
+        , rol = #{rol}
+        , password = #{password}
+        where usuario_id = #{usuarioId}
+
+    </update>
+    
+    <update id="updateClaveUsuario" parameterType="map" >
+        update usuario
+        set  password = #{password}
+        where usuario_id = #{usuarioId}
+
+    </update>
+
+    <delete id="deleteGrupo" parameterType="int">
+        delete from grupo
+        where grupo_id = #{grupoId}
+    </delete>
+</mapper>
